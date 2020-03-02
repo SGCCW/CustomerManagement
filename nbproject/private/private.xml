@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Views/LoginPage.fxml</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/CustomerManagement.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Views/HomePage.fxml</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Controllers/HomePageController.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Controllers/CustomerEditController.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Database/DatabaseController.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Views/CustomerEditPage.fxml</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Models/Customer.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Controllers/LoginPageController.java</file>
+            <file>file:/C:/Users/Collin/Documents/NetBeansProjects/CustomerManagement/src/customermanagement/Models/Appointment.java</file>
+        </group>
+    </open-files>
+</project-private>

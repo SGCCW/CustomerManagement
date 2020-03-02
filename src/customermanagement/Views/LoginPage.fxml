@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <VBox alignment="TOP_CENTER" spacing="20.0">
+         <children>
+            <Label text="Login">
+               <font>
+                  <Font name="Georgia" size="32.0" />
+               </font>
+            </Label>
+            <HBox alignment="TOP_RIGHT" spacing="10.0">
+               <children>
+                  <Label text="User Name:" />
+                  <TextField fx:id="txtUserName" />
+               </children>
+            </HBox>
+            <HBox alignment="TOP_RIGHT" spacing="10.0">
+               <children>
+                  <Label text="Password:" />
+                  <PasswordField fx:id="passUserPass" />
+               </children>
+            </HBox>
+            <HBox alignment="TOP_RIGHT">
+               <children>
+                  <CheckBox fx:id="chkRememberMe" mnemonicParsing="false" text="Remember Me" />
+               </children>
+            </HBox>
+            <HBox alignment="TOP_RIGHT">
+               <children>
+                  <Button fx:id="btnLogin" mnemonicParsing="false" onAction="#handleLogin" text="Enter" />
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+   </children>
+</AnchorPane>
