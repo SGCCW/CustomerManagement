@@ -1624,6 +1624,84 @@ public class DatabaseController {
         
     }
     
+    public void updateAppointment(Appointment oldappointment, Appointment appointment){
+        PreparedStatement updateAppointmentStatement = null;
+        
+        
+        
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made.  Connect and try again.");
+            return;
+        }
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlUpdateAppointment =   "UPDATE	appointment\n" +
+                                            "SET	customerId = ?,\n" +
+                                            "           userId = ?,\n" +
+                                            "           title = ?,\n" +
+                                            "           description = ?,\n" +
+                                            "           location = ?,\n" +
+                                            "           type = ?,\n" +
+                                            "           start = ?,\n" +
+                                            "           end = ?,\n" +
+                                            "           lastUpdate = ?,\n" +
+                                            "           lastUpdateBy = ?\n" +
+                                            "WHERE	appointmentId = ?";
+            //System.out.println(sqlUpdateProjectUpdate);
+            updateAppointmentStatement = this.dbConn.prepareStatement(sqlUpdateAppointment);
+
+            updateAppointmentStatement.setInt(1, appointment.getCustomer().getCustID());
+            updateAppointmentStatement.setInt(2, this.loggedInUserId);
+            updateAppointmentStatement.setString(3, appointment.getTitle());
+            updateAppointmentStatement.setString(4, appointment.getDescription());
+            updateAppointmentStatement.setString(5, appointment.getLocation());
+            updateAppointmentStatement.setString(6, appointment.getType());
+            updateAppointmentStatement.setTimestamp(7, Timestamp.valueOf(appointment.getStart()));
+            updateAppointmentStatement.setTimestamp(8, Timestamp.valueOf(appointment.getEnd()));
+            updateAppointmentStatement.setTimestamp(9, Timestamp.valueOf(LocalDateTime.now()));
+            updateAppointmentStatement.setString(10, this.loggedInUser);
+            updateAppointmentStatement.setInt(11, oldappointment.getAppointmentId());
+            
+            System.out.println("Executing Customer Update...");
+            int row = updateAppointmentStatement.executeUpdate();
+            System.out.println("Committing Customer Updated...");
+            //System.out.println(updateProjectUpdateStatement.toString());
+            //System.out.println(row);
+            this.dbConn.commit();
+            
+            
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                }
+            }
+            ex.printStackTrace();
+        }
+        finally{
+            try{
+                if (updateAppointmentStatement != null){
+                    updateAppointmentStatement.close();
+                    System.out.println("UpdateStatement closed");
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        
+        
+    }
+    
     public void deleteCustomer(Customer customer){
         PreparedStatement deleteCustomerStatement = null;
         

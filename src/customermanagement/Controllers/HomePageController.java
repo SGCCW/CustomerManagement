@@ -18,8 +18,11 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.ResourceBundle;
+import java.util.Set;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -62,6 +65,7 @@ public class HomePageController implements Initializable {
     
     @FXML private TableView<Appointment> tblAppointments;
     
+    @FXML private TextField txtCustomer;
     @FXML private TextField txtTitle;
     @FXML private TextArea txtDescription;
     @FXML private TextField txtLocation;
@@ -93,6 +97,7 @@ public class HomePageController implements Initializable {
         this.txtStartHour.setText("");
         this.txtStartMinute.setText("");
         this.txtDuration.setText("");
+        this.dtpkStart.setValue(null);
         
         this.editMode = "new";
     }
@@ -181,6 +186,7 @@ public class HomePageController implements Initializable {
         LocalDateTime enddatetime = startdatetime.plus(duration);
         String type = (String) this.choiceType.getValue();
         System.out.println("Saving to appointment customer: " + this.selectedCustomer.getCustName());
+        
         System.out.println(this.dbCtrl.getLoggedInUserId());
         System.out.println(this.txtTitle.getText());
         System.out.println(this.txtDescription.getText());
@@ -189,24 +195,32 @@ public class HomePageController implements Initializable {
         System.out.println(startdatetime);
         System.out.println(enddatetime);
         
-        
         Appointment newappointment = new Appointment(   this.selectedCustomer,
-                                                        this.dbCtrl.getLoggedInUserId(),
-                                                        this.txtTitle.getText(),
-                                                        this.txtDescription.getText(),
-                                                        this.txtLocation.getText(),
-                                                        type,
-                                                        startdatetime,
-                                                        enddatetime);
+                                                            this.dbCtrl.getLoggedInUserId(),
+                                                            this.txtTitle.getText(),
+                                                            this.txtDescription.getText(),
+                                                            this.txtLocation.getText(),
+                                                            type,
+                                                            startdatetime,
+                                                            enddatetime);
         
-        int aptid = this.dbCtrl.addAppointment(newappointment);
-        if(aptid != -1){
-            newappointment.setAppointmentId(aptid);
-            this.lstAppointments.add(newappointment);
+        if(this.editMode.equals("new")){
+            int aptid = this.dbCtrl.addAppointment(newappointment);
+            if(aptid != -1){
+                newappointment.setAppointmentId(aptid);
+                this.lstAppointments.add(newappointment);
+            }
+            else{
+                System.out.println("AddAppointment Failed");
+            }
         }
-        else{
-            System.out.println("AddAppointment Failed");
+        else if (this.editMode.equals("update")){
+            newappointment.setAppointmentId(this.activeAppointment.getAppointmentId());
+            this.dbCtrl.updateAppointment(this.activeAppointment, newappointment);
+            this.lstAppointments.set(this.activeAppointmentIndex, newappointment);
+            this.activeAppointment = newappointment;
         }
+        
     }
     
     @FXML
@@ -299,14 +313,16 @@ public class HomePageController implements Initializable {
 
                 this.editMode = "update";
 
+                this.selectedCustomer = this.activeAppointment.getCustomer();
+                this.txtCustomer.setText(this.selectedCustomer.getCustName());
                 this.txtTitle.setText(this.activeAppointment.getTitle());
                 this.txtDescription.setText(this.activeAppointment.getDescription());
                 this.txtLocation.setText(this.activeAppointment.getLocation());
                 this.choiceType.setValue(this.activeAppointment.getType());
-                //this.txtStartHour.setText(this.activeAppointment.get);
-                //this.txtStartMinute.setText(this.activeAppointment.get);
-                //this.txtDuration.setText(this.activeAppointment.get);
-                //this.dtpkStart.setValue(null);
+                this.txtStartHour.setText(String.valueOf(this.activeAppointment.getStart().getHour()));
+                this.txtStartMinute.setText(String.valueOf(this.activeAppointment.getStart().getMinute()));
+                this.txtDuration.setText(String.valueOf(ChronoUnit.MINUTES.between(this.activeAppointment.getStart(), this.activeAppointment.getEnd())));
+                this.dtpkStart.setValue(this.activeAppointment.getStart().toLocalDate());
             }
         }); 
         
@@ -315,3 +331,4 @@ public class HomePageController implements Initializable {
         
     
     }
+}
