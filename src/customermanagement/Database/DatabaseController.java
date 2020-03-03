@@ -12,6 +12,8 @@ import customermanagement.Models.Customer;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -188,10 +190,14 @@ public class DatabaseController {
             rs = authUserStatement.executeQuery();
             
             isauthed = rs.next();
-            userid = rs.getInt("userID");
-            if(isauthed && (userid != 0)){
-                System.out.println("User " + username + " has authed successfully.");
+            if(isauthed){
+                userid = rs.getInt("userID");
+                if(userid != 0){
+                    System.out.println("User " + username + " has authed successfully.");
+                }
             }
+            
+            
             System.out.println("testing");
         }
         catch (SQLException ex){
@@ -728,8 +734,8 @@ public class DatabaseController {
             String description;
             String location;
             String type;
-            LocalDateTime start;
-            LocalDateTime end;
+            ZonedDateTime start;
+            ZonedDateTime end;
             while(rs.next()){
                 appointmentid = rs.getInt("appointmentId");
                 customerid = rs.getInt("customerId");
@@ -738,8 +744,8 @@ public class DatabaseController {
                 description = rs.getString("description");
                 location = rs.getString("location");
                 type = rs.getString("type");
-                start = rs.getTimestamp("start").toLocalDateTime();
-                end = rs.getTimestamp("end").toLocalDateTime();
+                start = rs.getTimestamp("start").toLocalDateTime().atZone(ZoneId.systemDefault());
+                end = rs.getTimestamp("end").toLocalDateTime().atZone(ZoneId.systemDefault());
                 Optional<Customer> customer = getCustomer(customerid);
                 if(customer.isPresent()){
                     appointment = new Appointment(   appointmentid,
@@ -830,8 +836,8 @@ public class DatabaseController {
             String description;
             String location;
             String type;
-            LocalDateTime start;
-            LocalDateTime end;
+            ZonedDateTime start;
+            ZonedDateTime end;
             while(rs.next()){
                 appointmentid = rs.getInt("appointmentId");
                 customerid = rs.getInt("customerId");
@@ -840,8 +846,8 @@ public class DatabaseController {
                 description = rs.getString("description");
                 location = rs.getString("location");
                 type = rs.getString("type");
-                start = rs.getTimestamp("start").toLocalDateTime();
-                end = rs.getTimestamp("end").toLocalDateTime();
+                start = rs.getTimestamp("start").toLocalDateTime().atZone(ZoneId.systemDefault());
+                end = rs.getTimestamp("end").toLocalDateTime().atZone(ZoneId.systemDefault());
                 Optional<Customer> customer = getCustomer(customerid);
                 if(customer.isPresent()){
                     appointment = new Appointment(   appointmentid,
@@ -918,9 +924,9 @@ public class DatabaseController {
             
             stmtAddCountry = this.dbConn.prepareStatement(sqlAddCountry);
             stmtAddCountry.setString(1, country);
-            stmtAddCountry.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddCountry.setTimestamp(2, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddCountry.setString(3, this.loggedInUser);
-            stmtAddCountry.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddCountry.setTimestamp(4, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddCountry.setString(5, this.loggedInUser);
             
             stmtAddCountry.execute();
@@ -978,9 +984,9 @@ public class DatabaseController {
             stmtAddCity = this.dbConn.prepareStatement(sqlAddCity);
             stmtAddCity.setString(1, city);
             stmtAddCity.setInt(2, countryid);
-            stmtAddCity.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddCity.setTimestamp(3, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddCity.setString(4, this.loggedInUser);
-            stmtAddCity.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddCity.setTimestamp(5, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddCity.setString(6, this.loggedInUser);
             
             stmtAddCity.execute();
@@ -1048,9 +1054,9 @@ public class DatabaseController {
             stmtAddAddress.setInt(3, cityid);
             stmtAddAddress.setString(4, postalcode);
             stmtAddAddress.setString(5, phone);
-            stmtAddAddress.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddAddress.setTimestamp(6, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddAddress.setString(7, this.loggedInUser);
-            stmtAddAddress.setTimestamp(8, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddAddress.setTimestamp(8, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddAddress.setString(9, this.loggedInUser);
             
             stmtAddAddress.execute();
@@ -1156,9 +1162,9 @@ public class DatabaseController {
                     stmtAddCustomer.setString(1, customer.getCustName());
                     stmtAddCustomer.setInt(2, addressid);
                     stmtAddCustomer.setBoolean(3, customer.getIsActive());
-                    stmtAddCustomer.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+                    stmtAddCustomer.setTimestamp(4, Timestamp.from(ZonedDateTime.now().toInstant()));
                     stmtAddCustomer.setString(5, this.loggedInUser);
-                    stmtAddCustomer.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+                    stmtAddCustomer.setTimestamp(6, Timestamp.from(ZonedDateTime.now().toInstant()));
                     stmtAddCustomer.setString(7, this.loggedInUser);
 
                     stmtAddCustomer.execute();
@@ -1258,11 +1264,11 @@ public class DatabaseController {
             stmtAddAppointment.setString(6, "");
             stmtAddAppointment.setString(7, appointment.getType());
             stmtAddAppointment.setString(8, "");
-            stmtAddAppointment.setTimestamp(9, Timestamp.valueOf(appointment.getStart()));
-            stmtAddAppointment.setTimestamp(10, Timestamp.valueOf(appointment.getEnd()));
-            stmtAddAppointment.setTimestamp(11, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddAppointment.setTimestamp(9, Timestamp.from(appointment.getStart().toInstant()));
+            stmtAddAppointment.setTimestamp(10, Timestamp.from(appointment.getEnd().toInstant()));
+            stmtAddAppointment.setTimestamp(11, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddAppointment.setString(12, this.loggedInUser);
-            stmtAddAppointment.setTimestamp(13, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddAppointment.setTimestamp(13, Timestamp.from(ZonedDateTime.now().toInstant()));
             stmtAddAppointment.setString(14, this.loggedInUser);
             
             stmtAddAppointment.execute();
@@ -1322,7 +1328,7 @@ public class DatabaseController {
             updateCountryStatement = this.dbConn.prepareStatement(sqlUpdateCountry);
 
             updateCountryStatement.setString(1, country);
-            updateCountryStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            updateCountryStatement.setTimestamp(3, Timestamp.from(ZonedDateTime.now().toInstant()));
             updateCountryStatement.setString(4, this.loggedInUser);
             updateCountryStatement.setInt(5, countryid);
             
@@ -1388,7 +1394,7 @@ public class DatabaseController {
 
             updateCityStatement.setString(1, city);
             updateCityStatement.setInt(2, countryid);
-            updateCityStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            updateCityStatement.setTimestamp(3, Timestamp.from(ZonedDateTime.now().toInstant()));
             updateCityStatement.setString(4, this.loggedInUser);
             updateCityStatement.setInt(5, cityid);
             
@@ -1463,7 +1469,7 @@ public class DatabaseController {
             updateAddressStatement.setInt(3, cityid);
             updateAddressStatement.setString(4, postalcode);
             updateAddressStatement.setString(5, phone);
-            updateAddressStatement.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+            updateAddressStatement.setTimestamp(6, Timestamp.from(ZonedDateTime.now().toInstant()));
             updateAddressStatement.setString(7, this.loggedInUser);
             updateAddressStatement.setInt(8, addressid);
             
@@ -1583,7 +1589,7 @@ public class DatabaseController {
             updateCustomerStatement.setString(1, customer.getCustName());
             updateCustomerStatement.setInt(2, addressid);
             updateCustomerStatement.setBoolean(3, customer.getIsActive());
-            updateCustomerStatement.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            updateCustomerStatement.setTimestamp(4, Timestamp.from(ZonedDateTime.now().toInstant()));
             updateCustomerStatement.setString(5, this.loggedInUser);
             updateCustomerStatement.setInt(6, customer.getCustID());
             
@@ -1658,9 +1664,9 @@ public class DatabaseController {
             updateAppointmentStatement.setString(4, appointment.getDescription());
             updateAppointmentStatement.setString(5, appointment.getLocation());
             updateAppointmentStatement.setString(6, appointment.getType());
-            updateAppointmentStatement.setTimestamp(7, Timestamp.valueOf(appointment.getStart()));
-            updateAppointmentStatement.setTimestamp(8, Timestamp.valueOf(appointment.getEnd()));
-            updateAppointmentStatement.setTimestamp(9, Timestamp.valueOf(LocalDateTime.now()));
+            updateAppointmentStatement.setTimestamp(7, Timestamp.from(appointment.getStart().toInstant()));
+            updateAppointmentStatement.setTimestamp(8, Timestamp.from(appointment.getEnd().toInstant()));
+            updateAppointmentStatement.setTimestamp(9, Timestamp.from(ZonedDateTime.now().toInstant()));
             updateAppointmentStatement.setString(10, this.loggedInUser);
             updateAppointmentStatement.setInt(11, oldappointment.getAppointmentId());
             

@@ -6,6 +6,9 @@
 package customermanagement.Models;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import javafx.beans.property.SimpleStringProperty;
 
 /**
@@ -21,16 +24,16 @@ public class Appointment {
     private String description;
     private SimpleStringProperty location = new SimpleStringProperty("");;
     private SimpleStringProperty type = new SimpleStringProperty("");;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private SimpleStringProperty startstr = new SimpleStringProperty("");;
+    private ZonedDateTime start;
+    private ZonedDateTime end;
+    private SimpleStringProperty startStr = new SimpleStringProperty("");;
 
     
     public Appointment(String customername, String location, String type, String start){
         this.customerName.set(customername);
         this.location.set(location);
         this.type.set(type);
-        this.startstr.set(start);
+        this.startStr.set(start);
     }
     
     public Appointment(int appointmentid,
@@ -40,8 +43,8 @@ public class Appointment {
                             String description,
                             String location,
                             String type,
-                            LocalDateTime start,
-                            LocalDateTime end){
+                            ZonedDateTime start,
+                            ZonedDateTime end){
         this.appointmentId = appointmentid;
         this.customer = customer;
         this.customerName.set(customer.getCustName());
@@ -51,7 +54,8 @@ public class Appointment {
         this.location.set(location);
         this.type.set(type);
         this.start = start;
-        this.startstr.set(start.toString());
+        DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+        this.startStr.set(shortDateTime.format(start));
         this.end = end;
     }
     
@@ -61,8 +65,8 @@ public class Appointment {
                             String description,
                             String location,
                             String type,
-                            LocalDateTime start,
-                            LocalDateTime end){
+                            ZonedDateTime start,
+                            ZonedDateTime end){
         this.appointmentId = -1;
         this.customer = customer;
         this.customerName.set(customer.getCustName());
@@ -72,7 +76,8 @@ public class Appointment {
         this.location.set(location);
         this.type.set(type);
         this.start = start;
-        this.startstr.set(start.toString());
+        DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+        this.startStr.set(shortDateTime.format(start));
         this.end = end;
     }
 
@@ -108,11 +113,15 @@ public class Appointment {
         return type.get();
     }
 
-    public LocalDateTime getStart() {
+    public ZonedDateTime getStart() {
         return start;
     }
+    
+    public String getStartStr(){
+        return startStr.get();
+    }
 
-    public LocalDateTime getEnd() {
+    public ZonedDateTime getEnd() {
         return end;
     }
 
@@ -148,12 +157,17 @@ public class Appointment {
         this.type.set(type);
     }
 
-    public void setStart(LocalDateTime start) {
+    public void setStart(ZonedDateTime start) {
         this.start = start;
-        this.startstr.set(start.toString());
+        DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
+        this.startStr.set(shortDateTime.format(start));
+    }
+    
+    public void setStartStr(String str){
+        this.startStr.set(str);
     }
 
-    public void setEnd(LocalDateTime end) {
+    public void setEnd(ZonedDateTime end) {
         this.end = end;
     }
     

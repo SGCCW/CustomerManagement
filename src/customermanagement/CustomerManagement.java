@@ -11,6 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -60,8 +62,10 @@ public class CustomerManagement extends Application {
         else{
             loginpagecontroller = new LoginPageController(stage, dbctrl);
         }
-                
-        FXMLLoader loginpageloader = new FXMLLoader(getClass().getResource("Views/LoginPage.fxml"));
+        //Locale locale = new Locale("es", "MX");
+        Locale locale = Locale.getDefault();
+        ResourceBundle bundle = ResourceBundle.getBundle("resources/custmanagement", locale);
+        FXMLLoader loginpageloader = new FXMLLoader(getClass().getResource("Views/LoginPage.fxml"), bundle);
         
             
         loginpageloader.setController(loginpagecontroller);

@@ -60,7 +60,7 @@
                             </TableColumn>
                             <TableColumn maxWidth="150.0" minWidth="50.0" prefWidth="-1.0" text="Date">
                                 <cellValueFactory>
-                                    <PropertyValueFactory property="startstr" />
+                                    <PropertyValueFactory property="startStr" />
                                 </cellValueFactory>
                             </TableColumn>
                           </columns>

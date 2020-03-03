@@ -25,6 +25,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
@@ -38,6 +40,7 @@ import javafx.stage.Stage;
  */
 public class LoginPageController implements Initializable {
     private DatabaseController dbCtrl = null;
+    private ResourceBundle rb;
     private Stage appStage;
     private boolean autoLogin = false;
     private String autoUserName = "";
@@ -84,7 +87,8 @@ public class LoginPageController implements Initializable {
         
         // Username required
         if(username.equals("")){
-            // ADD ALERT
+            Alert alertuserreq = new Alert(AlertType.ERROR, this.rb.getString("userreq"));
+            alertuserreq.show();
             return;
         }
         
@@ -110,8 +114,62 @@ public class LoginPageController implements Initializable {
             }
         }
         
-        int success = this.dbCtrl.authenticateUser(username, userpass);
+        try{
+            int success = this.dbCtrl.authenticateUser(username, userpass);
+            if(success == -1){
+                throw new RuntimeException("User authentication failed.");
+            }
+            
+            // Track Login
+            Path loginpath = Paths.get("src/resources/log-ins.txt");
+            if(Files.exists(loginpath)){
+                try{
+                    BufferedWriter writer = new BufferedWriter(
+                                                new FileWriter("src/resources/log-ins.txt", true)  //Set true for append mode
+                                            );  
+                    writer.newLine();   //Add new line
+                    writer.write(username + ", " + LocalDateTime.now().toString());
+                    writer.close();
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else{
+                try (   FileWriter writer = new FileWriter("src/resources/log-ins.txt");
+                        BufferedWriter bw = new BufferedWriter(writer)) {
+
+                       bw.write(username + ", " + LocalDateTime.now().toString());
+
+               } catch (IOException e) {
+                       System.err.format("IOException: %s%n", e);
+               }
+            }
+            // Enter program
+            try{
+                this.dbCtrl.setLoggedInUser(username);
+
+                FXMLLoader homeloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/HomePage.fxml"));
+                //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
+
+                HomePageController homecontroller = new HomePageController(dbCtrl);
+                homeloader.setController(homecontroller);
+
+                Parent root = homeloader.load();
+                Scene scene = new Scene(root);
+
+                this.appStage.setScene(scene);
+                this.appStage.show();
+            } catch (IOException e){
+                e.printStackTrace();
+            }
+        }
+        catch(RuntimeException e){
+            Alert alertauthfailed = new Alert(AlertType.ERROR, this.rb.getString("userauthfail"));
+            alertauthfailed.show();
+        }
         
+        /*
         if(success != -1){
             // Track Login
             Path loginpath = Paths.get("src/resources/log-ins.txt");
@@ -160,7 +218,7 @@ public class LoginPageController implements Initializable {
         }
         else{
             //Error failed to auth;
-        }
+        }*/
         
         
     }
@@ -170,6 +228,7 @@ public class LoginPageController implements Initializable {
         if(this.autoLogin){
             this.handleLogin();
         }
+        this.rb = rb;
     }    
     
 }

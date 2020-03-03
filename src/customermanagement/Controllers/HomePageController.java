@@ -18,6 +18,8 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +34,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.DatePicker;
@@ -178,48 +182,54 @@ public class HomePageController implements Initializable {
     
     @FXML
     private void handleSave(ActionEvent event) {
-        LocalTime starttime = LocalTime.of( Integer.parseInt(this.txtStartHour.getText()), 
-                                            Integer.parseInt(this.txtStartMinute.getText()));
-        Duration duration = Duration.ofMinutes(Integer.parseInt(this.txtDuration.getText()));
-        LocalTime endtime = starttime.plus(duration);
-        LocalDateTime startdatetime = LocalDateTime.of(this.dtpkStart.getValue(), starttime);
-        LocalDateTime enddatetime = startdatetime.plus(duration);
-        String type = (String) this.choiceType.getValue();
-        System.out.println("Saving to appointment customer: " + this.selectedCustomer.getCustName());
-        
-        System.out.println(this.dbCtrl.getLoggedInUserId());
-        System.out.println(this.txtTitle.getText());
-        System.out.println(this.txtDescription.getText());
-        System.out.println(this.txtLocation.getText());
-        System.out.println((String) this.choiceType.getValue());
-        System.out.println(startdatetime);
-        System.out.println(enddatetime);
-        
-        Appointment newappointment = new Appointment(   this.selectedCustomer,
-                                                            this.dbCtrl.getLoggedInUserId(),
-                                                            this.txtTitle.getText(),
-                                                            this.txtDescription.getText(),
-                                                            this.txtLocation.getText(),
-                                                            type,
-                                                            startdatetime,
-                                                            enddatetime);
-        
-        if(this.editMode.equals("new")){
-            int aptid = this.dbCtrl.addAppointment(newappointment);
-            if(aptid != -1){
-                newappointment.setAppointmentId(aptid);
-                this.lstAppointments.add(newappointment);
+        try{
+            LocalTime starttime = LocalTime.of( Integer.parseInt(this.txtStartHour.getText()), 
+                                                Integer.parseInt(this.txtStartMinute.getText()));
+            Duration duration = Duration.ofMinutes(Integer.parseInt(this.txtDuration.getText()));
+            LocalTime endtime = starttime.plus(duration);
+            ZonedDateTime startdatetime = ZonedDateTime.of(this.dtpkStart.getValue(), starttime, ZoneId.systemDefault());
+            ZonedDateTime enddatetime = startdatetime.plus(duration);
+            String type = (String) this.choiceType.getValue();
+
+            if(endtime.compareTo(LocalTime.of(17, 00)) > 0){
+                throw new RuntimeException();
             }
-            else{
-                System.out.println("AddAppointment Failed");
+            if(starttime.compareTo(LocalTime.of(8, 00)) < 0){
+                throw new RuntimeException();
+            }
+            System.out.println("Saving to appointment customer: " + this.selectedCustomer.getCustName());
+
+            Appointment newappointment = new Appointment(   this.selectedCustomer,
+                                                                this.dbCtrl.getLoggedInUserId(),
+                                                                this.txtTitle.getText(),
+                                                                this.txtDescription.getText(),
+                                                                this.txtLocation.getText(),
+                                                                type,
+                                                                startdatetime,
+                                                                enddatetime);
+
+            if(this.editMode.equals("new")){
+                int aptid = this.dbCtrl.addAppointment(newappointment);
+                if(aptid != -1){
+                    newappointment.setAppointmentId(aptid);
+                    this.lstAppointments.add(newappointment);
+                }
+                else{
+                    System.out.println("AddAppointment Failed");
+                }
+            }
+            else if (this.editMode.equals("update")){
+                newappointment.setAppointmentId(this.activeAppointment.getAppointmentId());
+                this.dbCtrl.updateAppointment(this.activeAppointment, newappointment);
+                this.lstAppointments.set(this.activeAppointmentIndex, newappointment);
+                this.activeAppointment = newappointment;
             }
         }
-        else if (this.editMode.equals("update")){
-            newappointment.setAppointmentId(this.activeAppointment.getAppointmentId());
-            this.dbCtrl.updateAppointment(this.activeAppointment, newappointment);
-            this.lstAppointments.set(this.activeAppointmentIndex, newappointment);
-            this.activeAppointment = newappointment;
+        catch(RuntimeException e){
+            Alert outsidebusiness = new Alert(AlertType.ERROR, "Can not schedule appointment outside of business hours 8AM-5PM.");
+            outsidebusiness.show();
         }
+        
         
     }
     
