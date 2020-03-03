@@ -7,7 +7,6 @@ package customermanagement.Controllers;
 
 import customermanagement.CustomerManagement;
 import customermanagement.Database.DatabaseController;
-import customermanagement.Models.Token;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;

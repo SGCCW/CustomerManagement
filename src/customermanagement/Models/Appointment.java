@@ -15,15 +15,15 @@ import javafx.beans.property.SimpleStringProperty;
 public class Appointment {
     private int appointmentId;
     private Customer customer;
-    private SimpleStringProperty customerName;
+    private SimpleStringProperty customerName = new SimpleStringProperty("");;
     private int userId;
     private String title;
     private String description;
-    private SimpleStringProperty location;
-    private SimpleStringProperty type;
+    private SimpleStringProperty location = new SimpleStringProperty("");;
+    private SimpleStringProperty type = new SimpleStringProperty("");;
     private LocalDateTime start;
     private LocalDateTime end;
-    private SimpleStringProperty startstr;
+    private SimpleStringProperty startstr = new SimpleStringProperty("");;
 
     
     public Appointment(String customername, String location, String type, String start){
@@ -65,6 +65,7 @@ public class Appointment {
                             LocalDateTime end){
         this.appointmentId = -1;
         this.customer = customer;
+        this.customerName.set(customer.getCustName());
         this.userId = userid;
         this.title = title;
         this.description = description;

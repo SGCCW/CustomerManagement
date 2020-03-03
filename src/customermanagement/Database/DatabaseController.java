@@ -8,7 +8,6 @@ package customermanagement.Database;
 import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Int;
 import customermanagement.Models.Appointment;
 import customermanagement.Models.Customer;
-import customermanagement.Models.Token;
 //import Model.User;
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -626,6 +625,7 @@ public class DatabaseController {
                                         "           country ctr ON ct.countryId = ctr.countryId\n" +
                                         "WHERE      c.customerId = ?;";
             stmtGetCustomer = this.dbConn.prepareStatement(sqlGetCustomer);
+            stmtGetCustomer.setInt(1, id);
             rs = stmtGetCustomer.executeQuery();
             
             Customer tmpcustomer;
@@ -1238,14 +1238,16 @@ public class DatabaseController {
                                             "                           title,\n" +
                                             "                           description,\n" +
                                             "                           location,\n" +
+                                            "                           contact,\n" +
                                             "                           type,\n" +
+                                            "                           url,\n" +
                                             "                           start,\n" +
                                             "                           end,\n" +
                                             "                           createDate,\n" +
                                             "                           createdBy,\n" +
                                             "                           lastUpdate,\n" +
                                             "                           lastUpdateBy)\n" +
-                                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
             
             stmtAddAppointment = this.dbConn.prepareStatement(sqlAddAppointment);
             stmtAddAppointment.setInt(1, appointment.getCustomer().getCustID());
@@ -1253,13 +1255,15 @@ public class DatabaseController {
             stmtAddAppointment.setString(3, appointment.getTitle());
             stmtAddAppointment.setString(4, appointment.getDescription());
             stmtAddAppointment.setString(5, appointment.getLocation());
-            stmtAddAppointment.setString(6, appointment.getType());
-            stmtAddAppointment.setTimestamp(7, Timestamp.valueOf(appointment.getStart()));
-            stmtAddAppointment.setTimestamp(8, Timestamp.valueOf(appointment.getEnd()));
-            stmtAddAppointment.setTimestamp(9, Timestamp.valueOf(LocalDateTime.now()));
-            stmtAddAppointment.setString(10, this.loggedInUser);
+            stmtAddAppointment.setString(6, "");
+            stmtAddAppointment.setString(7, appointment.getType());
+            stmtAddAppointment.setString(8, "");
+            stmtAddAppointment.setTimestamp(9, Timestamp.valueOf(appointment.getStart()));
+            stmtAddAppointment.setTimestamp(10, Timestamp.valueOf(appointment.getEnd()));
             stmtAddAppointment.setTimestamp(11, Timestamp.valueOf(LocalDateTime.now()));
             stmtAddAppointment.setString(12, this.loggedInUser);
+            stmtAddAppointment.setTimestamp(13, Timestamp.valueOf(LocalDateTime.now()));
+            stmtAddAppointment.setString(14, this.loggedInUser);
             
             stmtAddAppointment.execute();
         }
@@ -1666,6 +1670,64 @@ public class DatabaseController {
             try{
                 if (deleteCustomerStatement != null){
                     deleteCustomerStatement.close();
+                    System.out.println("Delete Statement closed");
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        
+        
+    }
+    
+    public void deleteAppointment(Appointment appointment){
+        PreparedStatement deleteAppointmentStatement = null;
+        
+        
+        
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made.  Connect and try again.");
+            return;
+        }
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlDeleteAppointment =   "DELETE FROM appointment\n" +
+                                            "WHERE	appointmentId = ?";
+            //System.out.println(sqlUpdateProjectUpdate);
+            deleteAppointmentStatement = this.dbConn.prepareStatement(sqlDeleteAppointment);
+
+            deleteAppointmentStatement.setInt(1, appointment.getAppointmentId());
+            
+            System.out.println("Executing Customer Delete...");
+            deleteAppointmentStatement.execute();
+            System.out.println("Committing Customer Delete...");
+            //System.out.println(updateProjectUpdateStatement.toString());
+            //System.out.println(row);
+            this.dbConn.commit();
+            
+            
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                }
+            }
+            ex.printStackTrace();
+        }
+        finally{
+            try{
+                if (deleteAppointmentStatement != null){
+                    deleteAppointmentStatement.close();
                     System.out.println("Delete Statement closed");
                 }
                 this.dbConn.setAutoCommit(true);

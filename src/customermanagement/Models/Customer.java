@@ -13,7 +13,7 @@ import javafx.beans.property.SimpleStringProperty;
  */
 public class Customer {
     private int custID;
-    private final SimpleStringProperty CustName = new SimpleStringProperty("");;
+    private final SimpleStringProperty CustName = new SimpleStringProperty("");
     private String custAddress;
     private String custAddress2;
     private String custCity;

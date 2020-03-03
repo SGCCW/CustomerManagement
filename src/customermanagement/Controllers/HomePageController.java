@@ -9,7 +9,6 @@ import customermanagement.CustomerManagement;
 import customermanagement.Database.DatabaseController;
 import customermanagement.Models.Appointment;
 import customermanagement.Models.Customer;
-import customermanagement.Models.Token;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -66,7 +65,6 @@ public class HomePageController implements Initializable {
     @FXML private TextField txtTitle;
     @FXML private TextArea txtDescription;
     @FXML private TextField txtLocation;
-    @FXML private TextField txtType;
     @FXML private TextField txtStartHour;
     @FXML private TextField txtStartMinute;
     @FXML private TextField txtDuration;
@@ -85,7 +83,18 @@ public class HomePageController implements Initializable {
     
     @FXML
     private void handleDelete(ActionEvent event) {
+        this.dbCtrl.deleteAppointment(this.activeAppointment);
+        this.lstAppointments.remove(this.activeAppointment);
+        this.tblAppointments.getSelectionModel().clearSelection();
+        this.txtTitle.setText("");
+        this.txtDescription.setText("");
+        this.txtLocation.setText("");
+        this.choiceType.setValue(null);
+        this.txtStartHour.setText("");
+        this.txtStartMinute.setText("");
+        this.txtDuration.setText("");
         
+        this.editMode = "new";
     }
     
     @FXML
@@ -130,7 +139,7 @@ public class HomePageController implements Initializable {
         this.txtTitle.setText("");
         this.txtDescription.setText("");
         this.txtLocation.setText("");
-        this.txtType.setText("");
+        this.choiceType.setValue(null);
         this.txtStartHour.setText("");
         this.txtStartMinute.setText("");
         this.txtDuration.setText("");
@@ -281,8 +290,28 @@ public class HomePageController implements Initializable {
         this.lstAppointments = FXCollections.observableArrayList(appointments);
         this.tblAppointments.setItems(this.lstAppointments);
         
+        this.tblAppointments.setOnMousePressed(e ->{
+            if (e.getClickCount() == 1 && e.isPrimaryButtonDown() ){
+                Appointment appointment = this.tblAppointments.getSelectionModel().getSelectedItem();
+                int index = this.tblAppointments.getSelectionModel().getSelectedIndex();
+                this.activeAppointment = appointment;
+                this.activeAppointmentIndex = index;
+
+                this.editMode = "update";
+
+                this.txtTitle.setText(this.activeAppointment.getTitle());
+                this.txtDescription.setText(this.activeAppointment.getDescription());
+                this.txtLocation.setText(this.activeAppointment.getLocation());
+                this.choiceType.setValue(this.activeAppointment.getType());
+                //this.txtStartHour.setText(this.activeAppointment.get);
+                //this.txtStartMinute.setText(this.activeAppointment.get);
+                //this.txtDuration.setText(this.activeAppointment.get);
+                //this.dtpkStart.setValue(null);
+            }
+        }); 
+        
         // TODO
         System.out.println("COMPLETED HOMEPAGE INITIALIZATION");
-    }    
+        
     
-}
+    }
