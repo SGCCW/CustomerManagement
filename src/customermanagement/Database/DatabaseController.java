@@ -720,10 +720,13 @@ public class DatabaseController {
                                             "           end\n" +
                                             "FROM       appointment\n" +
                                             "WHERE      start >= ?" +
-                                            "AND        end <= ?;";
+                                            "AND        end <= ?" +
+                                            "AND        userId = ?" +
+                                            "ORDER BY   `start`;";
             stmtGetAppointments = this.dbConn.prepareStatement(sqlGetAppointments);
             stmtGetAppointments.setTimestamp(1, Timestamp.valueOf(starting));
             stmtGetAppointments.setTimestamp(2, Timestamp.valueOf(ending));
+            stmtGetAppointments.setInt(3, this.loggedInUserId);
             rs = stmtGetAppointments.executeQuery();
             
             Appointment appointment;
@@ -824,7 +827,8 @@ public class DatabaseController {
                                             "           type,\n" +
                                             "           start,\n" +
                                             "           end\n" +
-                                            "FROM       appointment\n;";
+                                            "FROM       appointment\n" +
+                                            "ORDER BY   `start`;";
             stmtGetAppointments = this.dbConn.prepareStatement(sqlGetAppointments);
             rs = stmtGetAppointments.executeQuery();
             
@@ -902,6 +906,61 @@ public class DatabaseController {
             }
         }
         return appointments;
+    }
+    
+    public ZonedDateTime getNearestAppointmentDateTime(){
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made. Connect and try again.");
+            return null;
+        }
+        
+        PreparedStatement stmtGetNearestAppointmentDateTime = null;
+        ResultSet rs = null;
+        ZonedDateTime start = null;
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlGetNearestAppointmentDateTime =   "SELECT MIN(start) AS nearest\n" +
+                                                        "FROM	appointment\n" +
+                                                        "WHERE	userId = ?\n" +
+                                                        "AND	start > NOW()";
+            stmtGetNearestAppointmentDateTime = this.dbConn.prepareStatement(sqlGetNearestAppointmentDateTime);
+            stmtGetNearestAppointmentDateTime.setInt(1, this.loggedInUserId);
+            rs = stmtGetNearestAppointmentDateTime.executeQuery();
+            
+            
+            while(rs.next()){
+                start = rs.getTimestamp("nearest").toLocalDateTime().atZone(ZoneId.systemDefault());
+            }
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                    ex.printStackTrace();
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                    return null;
+                }
+                return null;
+            }
+        }
+        finally{
+            try{
+                if (stmtGetNearestAppointmentDateTime != null){
+                    stmtGetNearestAppointmentDateTime.close();
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        return start;
     }
     
     
@@ -1823,7 +1882,38 @@ public class DatabaseController {
         
         
     }
-
     
 
 }
+
+// CUSTOM REPORTS
+/*
+# Appointment Types by Customer
+SELECT	c.customerName AS CustomerName, 
+		a.type AS Type, 
+		count(a.type) as NumberOfAppointments
+FROM	customer c JOIN
+		appointment a ON c.customerId = a.customerId
+WHERE	c.active = 1
+group by a.type;
+
+# Consultant Schedule
+SELECT	u.userName AS Consultant,
+		a.start AS AppointmentStart,
+        a.end AS AppointmentEnd,
+        a.title AS AppointmentTitle,
+        a.type AS AppointmentType,
+        c.customerName AS CustomerName
+FROM	user u JOIN
+		appointment a ON u.userId = a.userId JOIN
+        customer c ON a.customerId = c.customerId
+WHERE	u.active = 1;
+
+# Appointment Types by Month
+SELECT	MONTH(a.start) AS AppointmentMonth,
+		a.type AS Type,
+		count(a.type) AS NumberOfAppointments
+FROM	appointment a
+GROUP BY AppointmentMonth;
+
+*/

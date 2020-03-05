@@ -29,6 +29,10 @@ public class Appointment {
     private SimpleStringProperty startStr = new SimpleStringProperty("");;
 
     
+    public Appointment(){
+        
+    }
+    
     public Appointment(String customername, String location, String type, String start){
         this.customerName.set(customername);
         this.location.set(location);

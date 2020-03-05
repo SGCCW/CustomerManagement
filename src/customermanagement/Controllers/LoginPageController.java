@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
@@ -145,9 +146,16 @@ public class LoginPageController implements Initializable {
                        System.err.format("IOException: %s%n", e);
                }
             }
+            
             // Enter program
             try{
                 this.dbCtrl.setLoggedInUser(username);
+                // Alert user if appointment exists within 15 minutes of login
+                ZonedDateTime nearestappointmentstart = this.dbCtrl.getNearestAppointmentDateTime();
+                if(nearestappointmentstart.compareTo(ZonedDateTime.now().plusMinutes(15)) <= 0){
+                    Alert alertappointmentwarning = new Alert(AlertType.WARNING, "You have an appointment in less than 15 minutes.");
+                    alertappointmentwarning.show();
+                }
 
                 FXMLLoader homeloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/HomePage.fxml"));
                 //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
