@@ -35,11 +35,11 @@
                         <HBox alignment="CENTER_LEFT" spacing="20.0">
                            <children>
                               <ChoiceBox fx:id="choiceCalendarView" />
-                              <DatePicker fx:id="dtpkCalendarBegin" editable="false" prefWidth="120.0" />
+                              <DatePicker fx:id="dtpkCalendarBegin" editable="false" disable="true" prefWidth="120.0" />
                               <Label text="To:" />
-                              <DatePicker fx:id="dtpkCalendarEnd" editable="false" prefWidth="120.0" />
-                              <Button fx:id="btnDateBack" mnemonicParsing="false" text="&lt;" />
-                              <Button fx:id="btnDateForward" mnemonicParsing="false" text="&gt;" />
+                              <DatePicker fx:id="dtpkCalendarEnd" editable="false" disable="true" prefWidth="120.0" />
+                              <Button fx:id="btnDateBack" mnemonicParsing="false" text="&lt;" onAction="#handleDateBack"/>
+                              <Button fx:id="btnDateForward" mnemonicParsing="false" text="&gt;" onAction="#handleDateForward"/>
                            </children>
                         </HBox>
                         <TableView fx:id="tblAppointments">

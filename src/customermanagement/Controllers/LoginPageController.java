@@ -60,6 +60,8 @@ public class LoginPageController implements Initializable {
     public LoginPageController(Stage stage, DatabaseController dbctrl){
         this.appStage = stage;
         this.dbCtrl = dbctrl;
+        this.autoUserName = "";
+        this.autoPassword = "";
     }
     
     public LoginPageController(Stage stage, DatabaseController dbctrl, String username, String password){
@@ -85,7 +87,8 @@ public class LoginPageController implements Initializable {
             username = txtUserName.getText();
             userpass = passUserPass.getText();
         }
-        
+        System.out.println("username: " + username);
+        System.out.println("userpass: " + userpass);
         // Username required
         if(username.equals("")){
             Alert alertuserreq = new Alert(AlertType.ERROR, this.rb.getString("userreq"));
@@ -173,6 +176,7 @@ public class LoginPageController implements Initializable {
             }
         }
         catch(RuntimeException e){
+            e.printStackTrace();
             Alert alertauthfailed = new Alert(AlertType.ERROR, this.rb.getString("userauthfail"));
             alertauthfailed.show();
         }

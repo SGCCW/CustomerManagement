@@ -167,6 +167,8 @@ public class CustomerEditController implements Initializable {
         //      this.editMode = 'update'
         //      Set txtName, txtAddress, and txtPhone .text = customer info
         if(this.editMode.equals("select")){
+            this.btnNew.setDisable(true);
+            this.btnDelete.setDisable(true);
             this.txtName.setDisable(true);
             this.txtAddress.setDisable(true);
             this.txtAddress2.setDisable(true);

@@ -16,13 +16,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalField;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 import javafx.beans.value.ObservableValue;
@@ -77,6 +82,8 @@ public class HomePageController implements Initializable {
     @FXML private TextField txtStartMinute;
     @FXML private TextField txtDuration;
     
+    @FXML private DatePicker dtpkCalendarBegin;
+    @FXML private DatePicker dtpkCalendarEnd;
     @FXML private DatePicker dtpkStart;
     
     @FXML private Button btnEditCustomers;
@@ -87,23 +94,6 @@ public class HomePageController implements Initializable {
     }
     HomePageController(DatabaseController dbCtrl) {
         this.dbCtrl = dbCtrl;
-    }
-    
-    @FXML
-    private void handleDelete(ActionEvent event) {
-        this.dbCtrl.deleteAppointment(this.activeAppointment);
-        this.lstAppointments.remove(this.activeAppointment);
-        this.tblAppointments.getSelectionModel().clearSelection();
-        this.txtTitle.setText("");
-        this.txtDescription.setText("");
-        this.txtLocation.setText("");
-        this.choiceType.setValue(null);
-        this.txtStartHour.setText("");
-        this.txtStartMinute.setText("");
-        this.txtDuration.setText("");
-        this.dtpkStart.setValue(null);
-        
-        this.editMode = "new";
     }
     
     @FXML
@@ -120,7 +110,10 @@ public class HomePageController implements Initializable {
         }
         
         try{
-            FXMLLoader loginpageloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/LoginPage.fxml"));
+            //Locale locale = new Locale("es", "MX");
+            Locale locale = Locale.getDefault();
+            ResourceBundle bundle = ResourceBundle.getBundle("resources/custmanagement", locale);
+            FXMLLoader loginpageloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/LoginPage.fxml"), bundle);
             //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
 
             LoginPageController loginpagecontroller = new LoginPageController(this.appStage, this.dbCtrl);
@@ -138,6 +131,79 @@ public class HomePageController implements Initializable {
         
         Stage stage = (Stage) this.btnLogout.getScene().getWindow();
         stage.close();
+    }
+    
+    @FXML
+    private void handleDateBack(ActionEvent event){
+        String calperiod = (String) this.choiceCalendarView.getValue();
+        
+        LocalDate beginning = this.dtpkCalendarBegin.getValue();
+        LocalDate ending = this.dtpkCalendarEnd.getValue();
+        LocalDate newbeginning = beginning;
+        LocalDate newending = ending;
+        
+        if(calperiod.equals("Week")){
+            newbeginning = beginning.plusDays(-7);
+            newending = ending.plusDays(-7);
+        }
+        if(calperiod.equals("Month")){
+            newbeginning = beginning.plusMonths(-1).withDayOfMonth(1);
+            newending = beginning.plusMonths(-1).withDayOfMonth(newbeginning.lengthOfMonth());
+        }
+        
+        this.dtpkCalendarBegin.setValue(newbeginning);
+        this.dtpkCalendarEnd.setValue(newending);
+        
+        ArrayList<Appointment> appointments;
+        appointments = this.dbCtrl.getAppointments(newbeginning.atStartOfDay(), newending.atTime(LocalTime.MAX));
+        
+        this.lstAppointments = FXCollections.observableArrayList(appointments);
+        this.tblAppointments.setItems(this.lstAppointments);
+    }
+    
+    @FXML
+    private void handleDateForward(ActionEvent event){
+        String calperiod = (String) this.choiceCalendarView.getValue();
+        
+        LocalDate beginning = this.dtpkCalendarBegin.getValue();
+        LocalDate ending = this.dtpkCalendarEnd.getValue();
+        LocalDate newbeginning = beginning;
+        LocalDate newending = ending;
+        
+        if(calperiod.equals("Week")){
+            newbeginning = beginning.plusDays(7);
+            newending = ending.plusDays(7);
+        }
+        if(calperiod.equals("Month")){
+            newbeginning = beginning.plusMonths(1).withDayOfMonth(1);
+            newending = beginning.plusMonths(1).withDayOfMonth(newbeginning.lengthOfMonth());
+        }
+        
+        this.dtpkCalendarBegin.setValue(newbeginning);
+        this.dtpkCalendarEnd.setValue(newending);
+        
+        ArrayList<Appointment> appointments;
+        appointments = this.dbCtrl.getAppointments(newbeginning.atStartOfDay(), newending.atTime(LocalTime.MAX));
+        
+        this.lstAppointments = FXCollections.observableArrayList(appointments);
+        this.tblAppointments.setItems(this.lstAppointments);
+    }
+    
+    @FXML
+    private void handleDelete(ActionEvent event) {
+        this.dbCtrl.deleteAppointment(this.activeAppointment);
+        this.lstAppointments.remove(this.activeAppointment);
+        this.tblAppointments.getSelectionModel().clearSelection();
+        this.txtTitle.setText("");
+        this.txtDescription.setText("");
+        this.txtLocation.setText("");
+        this.choiceType.setValue(null);
+        this.txtStartHour.setText("");
+        this.txtStartMinute.setText("");
+        this.txtDuration.setText("");
+        this.dtpkStart.setValue(null);
+        
+        this.editMode = "new";
     }
     
     @FXML
@@ -236,14 +302,19 @@ public class HomePageController implements Initializable {
     @FXML
     private void handleRunReport(ActionEvent event) {
         String reporttype = (String) this.choiceReport.getValue();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        String reporttime = LocalDateTime.now().format(formatter);
         if(reporttype.equals("Appointment Types by Month")){
-            
+            this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByMonth(), 
+                                        "AppointmentTypesByMonth_" + reporttime + ".csv");
         }
         else if (reporttype.equals("Consultant Schedules")){
-            
+            this.dbCtrl.generateReport( this.dbCtrl.retrieveConsultantSchedules(), 
+                                        "ConsultantSchedules_" + reporttime + ".csv");
         }
         else if (reporttype.equals("Appointment Types by Customer")){
-            
+            this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByCustomer(), 
+                                        "AppointmentTypesByCustomer_" + reporttime + ".csv");
         }
     }
     
@@ -273,6 +344,11 @@ public class HomePageController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        dtpkCalendarBegin.setStyle("-fx-opacity: 1");
+        dtpkCalendarBegin.getEditor().setStyle("-fx-opacity: 1");
+        dtpkCalendarEnd.setStyle("-fx-opacity: 1");
+        dtpkCalendarEnd.getEditor().setStyle("-fx-opacity: 1");
+        
         // Set User Name
         this.lblUserName.setText(this.dbCtrl.getLoggedInUser());
         // Default edit-mode to "new"
@@ -288,7 +364,25 @@ public class HomePageController implements Initializable {
         this.choiceCalendarView.setItems(views);
         this.choiceCalendarView.getSelectionModel()
         .selectedItemProperty()
-        .addListener( (obs, oldV, newV) -> System.out.println(newV) );
+        .addListener( (obs, oldV, newV) -> {
+            LocalDate beginning = LocalDate.now();
+            LocalDate ending = LocalDate.now();
+            if(newV.equals("Month")){
+                beginning = beginning.withDayOfMonth(1);
+                ending = ending.withDayOfMonth(beginning.lengthOfMonth());
+            }
+            else{
+                TemporalField beginweek = WeekFields.of(Locale.getDefault()).dayOfWeek();
+                beginning = beginning.with(beginweek, 1);
+                ending = beginning.plusDays(6);
+            }
+            ArrayList<Appointment> appointments;
+            appointments = this.dbCtrl.getAppointments(beginning.atStartOfDay(), ending.atTime(LocalTime.MAX));
+            this.lstAppointments = FXCollections.observableArrayList(appointments);
+            this.tblAppointments.setItems(this.lstAppointments);
+            this.dtpkCalendarBegin.setValue(beginning);
+            this.dtpkCalendarEnd.setValue(ending);
+        });
         this.choiceCalendarView.getSelectionModel().select(0);
 
         // Populate Report Option List
@@ -302,17 +396,27 @@ public class HomePageController implements Initializable {
         this.choiceType.setItems(types);
         
         // Populate Calendar Appointments
+        /*
         String calview = (String) this.choiceCalendarView.getValue();
         ArrayList<Appointment> appointments;
+        LocalDate beginning = LocalDate.now();
+        LocalDate ending = LocalDate.now();
         if(calview.equals("Week")){
-            appointments = this.dbCtrl.getAppointments(LocalDateTime.now(), LocalDateTime.now().plusDays(7));
+            TemporalField beginweek = WeekFields.of(Locale.getDefault()).dayOfWeek();
+            beginning = beginning.with(beginweek, 1);
+            ending = beginning.plusDays(6);
+            appointments = this.dbCtrl.getAppointments(beginning.atStartOfDay(), ending.atTime(LocalTime.MAX));
         }
         else{
-            appointments = this.dbCtrl.getAppointments(LocalDateTime.now(), LocalDateTime.now().plusDays(31));
+            beginning = beginning.withDayOfMonth(1);
+            ending = ending.withDayOfMonth(beginning.lengthOfMonth());
+            appointments = this.dbCtrl.getAppointments(beginning.atStartOfDay(), ending.atTime(LocalTime.MAX));
         }
+        this.dtpkCalendarBegin.setValue(beginning);
+        this.dtpkCalendarEnd.setValue(ending);
         
         this.lstAppointments = FXCollections.observableArrayList(appointments);
-        this.tblAppointments.setItems(this.lstAppointments);
+        this.tblAppointments.setItems(this.lstAppointments);*/
         
         this.tblAppointments.setOnMousePressed(e ->{
             if (e.getClickCount() == 1 && e.isPrimaryButtonDown() ){

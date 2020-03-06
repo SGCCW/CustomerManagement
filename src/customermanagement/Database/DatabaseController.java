@@ -8,6 +8,10 @@ package customermanagement.Database;
 import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Int;
 import customermanagement.Models.Appointment;
 import customermanagement.Models.Customer;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 //import Model.User;
 import java.sql.*;
 import java.text.SimpleDateFormat;
@@ -719,10 +723,10 @@ public class DatabaseController {
                                             "           start,\n" +
                                             "           end\n" +
                                             "FROM       appointment\n" +
-                                            "WHERE      start >= ?" +
-                                            "AND        end <= ?" +
-                                            "AND        userId = ?" +
-                                            "ORDER BY   `start`;";
+                                            "WHERE      start >= ?\n" +
+                                            "AND        end <= ?\n" +
+                                            "AND        userId = ?\n" +
+                                            "ORDER BY   start ASC;";
             stmtGetAppointments = this.dbConn.prepareStatement(sqlGetAppointments);
             stmtGetAppointments.setTimestamp(1, Timestamp.valueOf(starting));
             stmtGetAppointments.setTimestamp(2, Timestamp.valueOf(ending));
@@ -1883,8 +1887,227 @@ public class DatabaseController {
         
     }
     
+    public void generateReport(String data, String name){
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(new File(name));
+            os.write(data.getBytes(), 0, data.length());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally{
+            try {
+                os.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public String retrieveAppointmentTypesByCustomer(){
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made. Connect and try again.");
+            return null;
+        }
+        
+        PreparedStatement stmtGetAppointmentTypes = null;
+        ResultSet rs = null;
+        String data = "";
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlGetAppointmentTypes =     "SELECT	c.customerName AS CustomerName, \n" +
+                                                "	a.type AS Type, \n" +
+                                                "	count(a.type) as NumberOfAppointments\n" +
+                                                "FROM	customer c JOIN\n" +
+                                                "	appointment a ON c.customerId = a.customerId\n" +
+                                                "WHERE	c.active = 1\n" +
+                                                "GROUP BY a.type;";
+            stmtGetAppointmentTypes = this.dbConn.prepareStatement(sqlGetAppointmentTypes);
+            rs = stmtGetAppointmentTypes.executeQuery();
+            
+            String customername;
+            String type;
+            String numberofappointments;
+            data += "CustomerName,Type,NumberOfAppointments\n";
+            while(rs.next()){
+                customername = rs.getString("CustomerName");
+                type = rs.getString("Type");
+                numberofappointments = rs.getString("NumberOfAppointments");
+                data += (customername + "," + type + "," + numberofappointments + "\n");
+            }
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                    ex.printStackTrace();
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                    return null;
+                }
+                return null;
+            }
+        }
+        finally{
+            try{
+                if (stmtGetAppointmentTypes != null){
+                    stmtGetAppointmentTypes.close();
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        return data;
+    }
+    
+    public String retrieveAppointmentTypesByMonth(){
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made. Connect and try again.");
+            return null;
+        }
+        
+        PreparedStatement stmtGetAppointmentTypes = null;
+        ResultSet rs = null;
+        String data = "";
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlGetAppointmentTypes =     "SELECT	MONTH(a.start) AS AppointmentMonth,\n" +
+                                                "	a.type AS Type,\n" +
+                                                "	count(a.type) AS NumberOfAppointments\n" +
+                                                "FROM	appointment a\n" +
+                                                "GROUP BY AppointmentMonth;";
+            stmtGetAppointmentTypes = this.dbConn.prepareStatement(sqlGetAppointmentTypes);
+            rs = stmtGetAppointmentTypes.executeQuery();
+            
+            String appointmentmonth;
+            String type;
+            String numberofappointments;
+            data += "AppointmentMonth,Type,NumberOfAppointments\n";
+            while(rs.next()){
+                appointmentmonth = rs.getString("AppointmentMonth");
+                type = rs.getString("Type");
+                numberofappointments = rs.getString("NumberOfAppointments");
+                data += (appointmentmonth + "," + type + "," + numberofappointments + "\n");
+            }
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                    ex.printStackTrace();
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                    return null;
+                }
+                return null;
+            }
+        }
+        finally{
+            try{
+                if (stmtGetAppointmentTypes != null){
+                    stmtGetAppointmentTypes.close();
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        return data;
+    }
+    
+    public String retrieveConsultantSchedules(){
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made. Connect and try again.");
+            return null;
+        }
+        
+        PreparedStatement stmtGetAppointmentTypes = null;
+        ResultSet rs = null;
+        String data = "";
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlGetAppointmentTypes =     "SELECT	u.userName AS Consultant,\n" +
+                                                "	a.start AS AppointmentStart,\n" +
+                                                "       a.end AS AppointmentEnd,\n" +
+                                                "       a.title AS AppointmentTitle,\n" +
+                                                "       a.type AS AppointmentType,\n" +
+                                                "       c.customerName AS CustomerName\n" +
+                                                "FROM	user u JOIN\n" +
+                                                "	appointment a ON u.userId = a.userId JOIN\n" +
+                                                "       customer c ON a.customerId = c.customerId\n" +
+                                                "WHERE	u.active = 1;";
+            stmtGetAppointmentTypes = this.dbConn.prepareStatement(sqlGetAppointmentTypes);
+            rs = stmtGetAppointmentTypes.executeQuery();
+            
+            String consultant;
+            String appointmentstart;
+            String appointmentend;
+            String appointmenttitle;
+            String appointmenttype;
+            String customername;
+            data += "Consultant,AppointmentStart,AppointmentEnd,AppoinmentTitle,AppointmentType,CustomerName\n";
+            while(rs.next()){
+                consultant = rs.getString("Consultant");
+                appointmentstart = rs.getString("AppointmentStart");
+                appointmentend = rs.getString("AppointmentEnd");
+                appointmenttitle = rs.getString("AppointmentTitle");
+                appointmenttype = rs.getString("AppointmentType");
+                customername = rs.getString("CustomerName");
+                data += (   consultant + "," + 
+                            appointmentstart + "," + 
+                            appointmentend + "," + 
+                            appointmenttitle + "," + 
+                            appointmenttype + "," + 
+                            customername + "\n");
+                
+                
+            }
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                    ex.printStackTrace();
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                    return null;
+                }
+                return null;
+            }
+        }
+        finally{
+            try{
+                if (stmtGetAppointmentTypes != null){
+                    stmtGetAppointmentTypes.close();
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        return data;
+    }
 
 }
+
 
 // CUSTOM REPORTS
 /*
