@@ -935,7 +935,11 @@ public class DatabaseController {
             
             
             while(rs.next()){
-                start = rs.getTimestamp("nearest").toLocalDateTime().atZone(ZoneId.systemDefault());
+                Timestamp startstamp = rs.getTimestamp("nearest");
+                if(startstamp != null){
+                    start = startstamp.toLocalDateTime().atZone(ZoneId.systemDefault());
+                }
+                else start = null;
             }
         }
         catch (SQLException ex){

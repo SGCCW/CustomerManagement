@@ -33,6 +33,7 @@ public class CustomerEditController implements Initializable {
     private String editMode = "";
     private DatabaseController dbCtrl;
     private Customer selectedCustomer;
+    private TextField customerDisplay;
     private Customer activeCustomer;
     private int activeCustomerIndex;
     private ObservableList<Customer> lstCustomers;
@@ -59,10 +60,11 @@ public class CustomerEditController implements Initializable {
     CustomerEditController(DatabaseController dbCtrl) {
         this.dbCtrl = dbCtrl;
     }
-    CustomerEditController(String editmode, Customer customer, DatabaseController dbCtrl){
+    CustomerEditController(String editmode, Customer customer, TextField display, DatabaseController dbCtrl){
         this.dbCtrl = dbCtrl;
         this.editMode = editmode;
         this.selectedCustomer = customer;
+        this.customerDisplay = display;
     }
     
     
@@ -146,10 +148,11 @@ public class CustomerEditController implements Initializable {
     
     @FXML
     private void handleSelectCustomer(ActionEvent event){
+        this.customerDisplay.setText(this.selectedCustomer.getCustName());
         // get a handle to the stage
-    Stage stage = (Stage) this.btnSelect.getScene().getWindow();
-    // do what you have to do
-    stage.close();
+        Stage stage = (Stage) this.btnSelect.getScene().getWindow();
+        // do what you have to do
+        stage.close();
     }
     
     

@@ -62,6 +62,7 @@ public class LoginPageController implements Initializable {
         this.dbCtrl = dbctrl;
         this.autoUserName = "";
         this.autoPassword = "";
+        System.out.println(this.appStage);
     }
     
     public LoginPageController(Stage stage, DatabaseController dbctrl, String username, String password){
@@ -71,6 +72,7 @@ public class LoginPageController implements Initializable {
         this.autoLogin = true;
         this.autoUserName = username;
         this.autoPassword = password;
+        System.out.println(this.appStage);
     }
     
     @FXML
@@ -155,7 +157,9 @@ public class LoginPageController implements Initializable {
                 this.dbCtrl.setLoggedInUser(username);
                 // Alert user if appointment exists within 15 minutes of login
                 ZonedDateTime nearestappointmentstart = this.dbCtrl.getNearestAppointmentDateTime();
-                if(nearestappointmentstart.compareTo(ZonedDateTime.now().plusMinutes(15)) <= 0){
+                if(     nearestappointmentstart != null &&
+                        nearestappointmentstart.compareTo(ZonedDateTime.now().plusMinutes(15)) <= 0
+                    ){
                     Alert alertappointmentwarning = new Alert(AlertType.WARNING, "You have an appointment in less than 15 minutes.");
                     alertappointmentwarning.show();
                 }
@@ -163,7 +167,7 @@ public class LoginPageController implements Initializable {
                 FXMLLoader homeloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/HomePage.fxml"));
                 //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
 
-                HomePageController homecontroller = new HomePageController(dbCtrl);
+                HomePageController homecontroller = new HomePageController(this.appStage, dbCtrl);
                 homeloader.setController(homecontroller);
 
                 Parent root = homeloader.load();
@@ -237,8 +241,13 @@ public class LoginPageController implements Initializable {
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        if(this.autoLogin){
-            this.handleLogin();
+        this.btnLogin.setOnAction(event -> handleLogin());
+        if(this.autoLogin == true){
+            this.txtUserName.setText(this.autoUserName);
+            this.passUserPass.setText(this.autoPassword);
+
+
+            this.chkRememberMe.setSelected(true);
         }
         this.rb = rb;
     }    

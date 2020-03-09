@@ -92,7 +92,8 @@ public class HomePageController implements Initializable {
     HomePageController(){
         
     }
-    HomePageController(DatabaseController dbCtrl) {
+    HomePageController(Stage appstage, DatabaseController dbCtrl) {
+        this.appStage = appstage;
         this.dbCtrl = dbCtrl;
     }
     
@@ -115,22 +116,21 @@ public class HomePageController implements Initializable {
             ResourceBundle bundle = ResourceBundle.getBundle("resources/custmanagement", locale);
             FXMLLoader loginpageloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/LoginPage.fxml"), bundle);
             //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
-
+            System.out.println("HomePageLogoutAppStage: " + this.appStage);
             LoginPageController loginpagecontroller = new LoginPageController(this.appStage, this.dbCtrl);
             loginpageloader.setController(loginpagecontroller);
 
             Parent root = loginpageloader.load();
             Scene scene = new Scene(root);
-            Stage stage = new Stage();
-            stage.setScene(scene);
+            this.appStage.setScene(scene);
             //this.appStage.setResizable(true);
-            stage.show();
+            this.appStage.show();
         } catch (IOException e){
             e.printStackTrace();
         }
         
-        Stage stage = (Stage) this.btnLogout.getScene().getWindow();
-        stage.close();
+        //Stage stage = (Stage) this.btnLogout.getScene().getWindow();
+        //stage.close();
     }
     
     @FXML
@@ -231,7 +231,7 @@ public class HomePageController implements Initializable {
             FXMLLoader customereditloader = new FXMLLoader(getClass().getResource("/customermanagement/Views/CustomerEditPage.fxml"));
             //System.out.println(getClass().getResource("Views/HomePage.fxml"));  !!! RETURNS NULL !!!
 
-            CustomerEditController customereditcontroller = new CustomerEditController("select", this.selectedCustomer, dbCtrl);
+            CustomerEditController customereditcontroller = new CustomerEditController("select", this.selectedCustomer, this.txtCustomer, dbCtrl);
             customereditloader.setController(customereditcontroller);
 
             Parent root = customereditloader.load();
@@ -240,6 +240,7 @@ public class HomePageController implements Initializable {
             stage.setScene(scene);
             //this.appStage.setResizable(true);
             stage.show();
+            this.txtCustomer.setText(this.selectedCustomer.getCustName());
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -302,19 +303,30 @@ public class HomePageController implements Initializable {
     @FXML
     private void handleRunReport(ActionEvent event) {
         String reporttype = (String) this.choiceReport.getValue();
+        System.out.println(reporttype);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
         String reporttime = LocalDateTime.now().format(formatter);
-        if(reporttype.equals("Appointment Types by Month")){
-            this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByMonth(), 
-                                        "AppointmentTypesByMonth_" + reporttime + ".csv");
+        if(reporttype != null){
+            if(reporttype.equals("Appointment Types by Month")){
+                this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByMonth(), 
+                                            "AppointmentTypesByMonth_" + reporttime + ".csv");
+            }
+            else if (reporttype.equals("Consultant Schedules")){
+                this.dbCtrl.generateReport( this.dbCtrl.retrieveConsultantSchedules(), 
+                                            "ConsultantSchedules_" + reporttime + ".csv");
+            }
+            else if (reporttype.equals("Appointment Types by Customer")){
+                this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByCustomer(), 
+                                            "AppointmentTypesByCustomer_" + reporttime + ".csv");
+            }
+            else{
+                Alert invalidreportalert = new Alert(AlertType.ERROR, "Please select a valid report.");
+                invalidreportalert.show();
+            }
         }
-        else if (reporttype.equals("Consultant Schedules")){
-            this.dbCtrl.generateReport( this.dbCtrl.retrieveConsultantSchedules(), 
-                                        "ConsultantSchedules_" + reporttime + ".csv");
-        }
-        else if (reporttype.equals("Appointment Types by Customer")){
-            this.dbCtrl.generateReport( this.dbCtrl.retrieveAppointmentTypesByCustomer(), 
-                                        "AppointmentTypesByCustomer_" + reporttime + ".csv");
+        else{
+            Alert invalidreportalert = new Alert(AlertType.ERROR, "Please select a valid report.");
+            invalidreportalert.show();
         }
     }
     
@@ -359,6 +371,15 @@ public class HomePageController implements Initializable {
         
         // Populate Calendar View options (Week/Month)
         // Then set on change lambda to update the appointment table
+        /*
+        
+        ########################################################################
+        ------------------------- LAMBDA 1 -------------------------------------
+        ########################################################################
+            When you switch calendar views between month and week, the calendar
+        appointments need to 1. choose a start date for the week/month and 2.
+        update the appointments list to reflect the whole time period.
+        */
         ObservableList<String> views = FXCollections.observableArrayList();
         views.addAll("Week", "Month");
         this.choiceCalendarView.setItems(views);
@@ -383,6 +404,8 @@ public class HomePageController implements Initializable {
             this.dtpkCalendarBegin.setValue(beginning);
             this.dtpkCalendarEnd.setValue(ending);
         });
+        // Set selection default to "Week", calling lambda above and populating
+        // appointments
         this.choiceCalendarView.getSelectionModel().select(0);
 
         // Populate Report Option List
@@ -395,29 +418,16 @@ public class HomePageController implements Initializable {
         types.addAll("Scrum", "Presentation");
         this.choiceType.setItems(types);
         
-        // Populate Calendar Appointments
+        
         /*
-        String calview = (String) this.choiceCalendarView.getValue();
-        ArrayList<Appointment> appointments;
-        LocalDate beginning = LocalDate.now();
-        LocalDate ending = LocalDate.now();
-        if(calview.equals("Week")){
-            TemporalField beginweek = WeekFields.of(Locale.getDefault()).dayOfWeek();
-            beginning = beginning.with(beginweek, 1);
-            ending = beginning.plusDays(6);
-            appointments = this.dbCtrl.getAppointments(beginning.atStartOfDay(), ending.atTime(LocalTime.MAX));
-        }
-        else{
-            beginning = beginning.withDayOfMonth(1);
-            ending = ending.withDayOfMonth(beginning.lengthOfMonth());
-            appointments = this.dbCtrl.getAppointments(beginning.atStartOfDay(), ending.atTime(LocalTime.MAX));
-        }
-        this.dtpkCalendarBegin.setValue(beginning);
-        this.dtpkCalendarEnd.setValue(ending);
         
-        this.lstAppointments = FXCollections.observableArrayList(appointments);
-        this.tblAppointments.setItems(this.lstAppointments);*/
-        
+        ########################################################################
+        ------------------------- LAMBDA 2 -------------------------------------
+        ########################################################################
+            When you switch select an appointment, the appointment interface
+        needs to reflect the appropriate information for viewing and editing
+        purposes.
+        */
         this.tblAppointments.setOnMousePressed(e ->{
             if (e.getClickCount() == 1 && e.isPrimaryButtonDown() ){
                 Appointment appointment = this.tblAppointments.getSelectionModel().getSelectedItem();
