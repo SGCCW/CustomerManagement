@@ -12,20 +12,20 @@
    <children>
       <VBox alignment="TOP_CENTER" spacing="20.0">
          <children>
-            <Label text="Login">
+            <Label text="Login" fx:id="lblLogin">
                <font>
                   <Font name="Georgia" size="32.0" />
                </font>
             </Label>
             <HBox alignment="TOP_RIGHT" spacing="10.0">
                <children>
-                  <Label text="User Name:" />
+                  <Label text="User Name:" fx:id="lblUsername"/>
                   <TextField fx:id="txtUserName" />
                </children>
             </HBox>
             <HBox alignment="TOP_RIGHT" spacing="10.0">
                <children>
-                  <Label text="Password:" />
+                  <Label text="Password:" fx:id="lblPassword"/>
                   <PasswordField fx:id="passUserPass" />
                </children>
             </HBox>

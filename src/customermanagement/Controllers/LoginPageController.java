@@ -47,6 +47,10 @@ public class LoginPageController implements Initializable {
     private String autoUserName = "";
     private String autoPassword = "";
     
+    
+    @FXML private Label lblLogin;
+    @FXML private Label lblUsername;
+    @FXML private Label lblPassword;
 
     @FXML private TextField txtUserName;
     @FXML private PasswordField passUserPass;
@@ -250,6 +254,12 @@ public class LoginPageController implements Initializable {
             this.chkRememberMe.setSelected(true);
         }
         this.rb = rb;
+        
+        this.lblLogin.setText(this.rb.getString("login"));
+        this.lblUsername.setText(this.rb.getString("username"));
+        this.lblPassword.setText(this.rb.getString("password"));
+        this.chkRememberMe.setText(this.rb.getString("rememberme"));
+        this.btnLogin.setText(this.rb.getString("enter"));
     }    
     
 }

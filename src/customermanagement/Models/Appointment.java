@@ -59,7 +59,8 @@ public class Appointment {
         this.type.set(type);
         this.start = start;
         DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
-        this.startStr.set(shortDateTime.format(start));
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
+        this.startStr.set(shortDateTime.format(start) + " " + start.format(time));
         this.end = end;
     }
     
@@ -81,7 +82,8 @@ public class Appointment {
         this.type.set(type);
         this.start = start;
         DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
-        this.startStr.set(shortDateTime.format(start));
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
+        this.startStr.set(shortDateTime.format(start) + " " + start.format(time));
         this.end = end;
     }
 
@@ -164,7 +166,8 @@ public class Appointment {
     public void setStart(ZonedDateTime start) {
         this.start = start;
         DateTimeFormatter shortDateTime = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT);
-        this.startStr.set(shortDateTime.format(start));
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
+        this.startStr.set(shortDateTime.format(start) + " " + start.format(time));
     }
     
     public void setStartStr(String str){

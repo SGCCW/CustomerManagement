@@ -1926,7 +1926,7 @@ public class DatabaseController {
                                                 "FROM	customer c JOIN\n" +
                                                 "	appointment a ON c.customerId = a.customerId\n" +
                                                 "WHERE	c.active = 1\n" +
-                                                "GROUP BY a.type;";
+                                                "GROUP BY a.type, c.customerName;";
             stmtGetAppointmentTypes = this.dbConn.prepareStatement(sqlGetAppointmentTypes);
             rs = stmtGetAppointmentTypes.executeQuery();
             
@@ -1987,7 +1987,7 @@ public class DatabaseController {
                                                 "	a.type AS Type,\n" +
                                                 "	count(a.type) AS NumberOfAppointments\n" +
                                                 "FROM	appointment a\n" +
-                                                "GROUP BY AppointmentMonth;";
+                                                "GROUP BY AppointmentMonth, Type;";
             stmtGetAppointmentTypes = this.dbConn.prepareStatement(sqlGetAppointmentTypes);
             rs = stmtGetAppointmentTypes.executeQuery();
             
