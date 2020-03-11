@@ -5,7 +5,6 @@ package customermanagement.Database;
  * and open the template in the editor.
  */
 
-import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Int;
 import customermanagement.Models.Appointment;
 import customermanagement.Models.Customer;
 import java.io.File;
