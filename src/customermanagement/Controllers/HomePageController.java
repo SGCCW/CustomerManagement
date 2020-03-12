@@ -274,23 +274,37 @@ public class HomePageController implements Initializable {
                                                                 type,
                                                                 startdatetime,
                                                                 enddatetime);
+            try{
+                ArrayList<Appointment> overlappingapts;
+                overlappingapts = this.dbCtrl.getAppointments(  startdatetime.toLocalDateTime(), 
+                                                                enddatetime.toLocalDateTime());
+                if(! overlappingapts.isEmpty()){
+                    throw new RuntimeException();
+                }
+                
+                if(this.editMode.equals("new")){
+                    int aptid = this.dbCtrl.addAppointment(newappointment);
+                    if(aptid != -1){
+                        newappointment.setAppointmentId(aptid);
+                        this.lstAppointments.add(newappointment);
+                    }
+                    else{
+                        System.out.println("AddAppointment Failed");
+                    }
+                }
+                else if (this.editMode.equals("update")){
+                    newappointment.setAppointmentId(this.activeAppointment.getAppointmentId());
+                    this.dbCtrl.updateAppointment(this.activeAppointment, newappointment);
+                    this.lstAppointments.set(this.activeAppointmentIndex, newappointment);
+                    this.activeAppointment = newappointment;
+                }
+            }
+            catch(RuntimeException ex){
+                Alert overlappingapt = new Alert(AlertType.ERROR, "Can not schedule an overlapping appointment.  Please adjust your schedule.");
+                overlappingapt.show();
+            }
 
-            if(this.editMode.equals("new")){
-                int aptid = this.dbCtrl.addAppointment(newappointment);
-                if(aptid != -1){
-                    newappointment.setAppointmentId(aptid);
-                    this.lstAppointments.add(newappointment);
-                }
-                else{
-                    System.out.println("AddAppointment Failed");
-                }
-            }
-            else if (this.editMode.equals("update")){
-                newappointment.setAppointmentId(this.activeAppointment.getAppointmentId());
-                this.dbCtrl.updateAppointment(this.activeAppointment, newappointment);
-                this.lstAppointments.set(this.activeAppointmentIndex, newappointment);
-                this.activeAppointment = newappointment;
-            }
+            
         }
         catch(RuntimeException e){
             Alert outsidebusiness = new Alert(AlertType.ERROR, "Can not schedule appointment outside of business hours 8AM-5PM.");
