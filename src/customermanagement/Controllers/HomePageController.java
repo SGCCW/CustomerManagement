@@ -211,6 +211,8 @@ public class HomePageController implements Initializable {
         // Set lstCustomers.Selection to NULL
         this.tblAppointments.getSelectionModel().clearSelection();
         
+        this.selectedCustomer = null;
+        this.txtCustomer.setText("");
         this.txtTitle.setText("");
         this.txtDescription.setText("");
         this.txtLocation.setText("");
@@ -276,8 +278,8 @@ public class HomePageController implements Initializable {
                                                                 enddatetime);
             try{
                 ArrayList<Appointment> overlappingapts;
-                overlappingapts = this.dbCtrl.getAppointments(  startdatetime.toLocalDateTime(), 
-                                                                enddatetime.toLocalDateTime());
+                overlappingapts = this.dbCtrl.getOverlappingAppointments(   startdatetime.toLocalDateTime(), 
+                                                                            enddatetime.toLocalDateTime());
                 if(! overlappingapts.isEmpty()){
                     throw new RuntimeException();
                 }

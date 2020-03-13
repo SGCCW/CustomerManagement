@@ -115,6 +115,9 @@ public class CustomerEditController implements Initializable {
     }
     @FXML 
     private void handleSave(ActionEvent event) {
+        System.out.println(isValidCustomer());
+        assert isValidCustomer(): "Invalid customer information.  Ensure name and address are filled out.";
+        
         Customer savedcustomer = new Customer(  this.txtName.getText(),
                                                 this.txtAddress.getText(),
                                                 this.txtAddress2.getText(),
@@ -153,6 +156,11 @@ public class CustomerEditController implements Initializable {
         Stage stage = (Stage) this.btnSelect.getScene().getWindow();
         // do what you have to do
         stage.close();
+    }
+    
+    private boolean isValidCustomer(){
+        if(! this.txtName.getText().equals("") && ! this.txtAddress.getText().equals("")) return true;
+        else return false;
     }
     
     

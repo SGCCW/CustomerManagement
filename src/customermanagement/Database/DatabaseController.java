@@ -911,6 +911,115 @@ public class DatabaseController {
         return appointments;
     }
     
+    public ArrayList<Appointment> getOverlappingAppointments(LocalDateTime starting, LocalDateTime ending){
+        if(!this.isConnected()){
+            System.out.println("DB Connection has not been made. Connect and try again.");
+            return new ArrayList<Appointment>();
+        }
+        
+        PreparedStatement stmtGetOverlappingAppointments = null;
+        ResultSet rs = null;
+        ArrayList<Appointment> appointments = new ArrayList();
+        
+        try{
+            this.dbConn.setAutoCommit(false);
+            
+            String sqlGetOverlappingAppointments =     "SELECT     appointmentId,\n" +
+                                                        "           customerId,\n" +
+                                                        "           userId,\n" +
+                                                        "           title,\n" +
+                                                        "           description,\n" +
+                                                        "           location,\n" +
+                                                        "           type,\n" +
+                                                        "           start,\n" +
+                                                        "           end\n" +
+                                                        "FROM       appointment\n" +
+                                                        "WHERE      start < ?\n" +
+                                                        "AND        end > ?\n" +
+                                                        "AND        userId = ?\n" +
+                                                        "ORDER BY   start ASC;";
+            stmtGetOverlappingAppointments = this.dbConn.prepareStatement(sqlGetOverlappingAppointments);
+            stmtGetOverlappingAppointments.setTimestamp(1, Timestamp.valueOf(ending));
+            stmtGetOverlappingAppointments.setTimestamp(2, Timestamp.valueOf(starting));
+            stmtGetOverlappingAppointments.setInt(3, this.loggedInUserId);
+            rs = stmtGetOverlappingAppointments.executeQuery();
+            
+            Appointment appointment;
+            int appointmentid;
+            int customerid;
+            int userid;
+            String title;
+            String description;
+            String location;
+            String type;
+            ZonedDateTime start;
+            ZonedDateTime end;
+            while(rs.next()){
+                appointmentid = rs.getInt("appointmentId");
+                customerid = rs.getInt("customerId");
+                userid = rs.getInt("userId");
+                title = rs.getString("title");
+                description = rs.getString("description");
+                location = rs.getString("location");
+                type = rs.getString("type");
+                start = rs.getTimestamp("start").toLocalDateTime().atZone(ZoneId.systemDefault());
+                end = rs.getTimestamp("end").toLocalDateTime().atZone(ZoneId.systemDefault());
+                Optional<Customer> customer = getCustomer(customerid);
+                if(customer.isPresent()){
+                    appointment = new Appointment(   appointmentid,
+                                                        customer.get(),
+                                                        userid,
+                                                        title,
+                                                        description,
+                                                        location,
+                                                        type,
+                                                        start,
+                                                        end);
+                }
+                else{
+                    appointment = new Appointment(   appointmentid,
+                                                        new Customer(),
+                                                        userid,
+                                                        title,
+                                                        description,
+                                                        location,
+                                                        type,
+                                                        start,
+                                                        end);
+                }
+                
+                appointments.add(appointment);
+            }
+        }
+        catch (SQLException ex){
+            if (this.dbConn != null) {
+                try {
+ 
+                    this.dbConn.rollback();
+ 
+                    System.out.println("Rolled back.");
+                    ex.printStackTrace();
+                } catch (SQLException exrb) {
+                    exrb.printStackTrace();
+                    return new ArrayList<Appointment>();
+                }
+                return new ArrayList<Appointment>();
+            }
+        }
+        finally{
+            try{
+                if (stmtGetOverlappingAppointments != null){
+                    stmtGetOverlappingAppointments.close();
+                }
+                this.dbConn.setAutoCommit(true);
+            }
+            catch (SQLException excs) {
+                excs.printStackTrace();
+            }
+        }
+        return appointments;
+    }
+    
     public ZonedDateTime getNearestAppointmentDateTime(){
         if(!this.isConnected()){
             System.out.println("DB Connection has not been made. Connect and try again.");
